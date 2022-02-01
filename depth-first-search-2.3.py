@@ -3,12 +3,12 @@
 
 graph = {
     "A": ["B", "C"],
-    "B": ["D", "F", "A"],
+    "B": ["F", "D", "A"],
     "C": ["D", "E", "A"],
-    "D": ["E", "C"],
+    "D": ["E", "B", "C"],
     "E": ["H", "C", "D"],
     "F": ["G", "H", "B"],
-    "G": ["L", "I", "H", "F"],
+    "G": ["L", "I", "F", "H"],
     "H": ["J", "K", "E", "F", "G"],
     "I": ["L", "J", "G"],
     "J": ["M", "H", "I"],
@@ -19,16 +19,28 @@ graph = {
 
 def depth_first_search(graph, start: str, goal: str):
     frontier = [start]
-    reached = set()
+    reached = { start: start }
     while len(frontier) != 0:
+        
+        print(f"Frontier {frontier}")
+        print(f"Reached {reached}")
+
         path = frontier.pop(0)
         if goal in path:
             return path
+
         node = path[-1]
-        if path not in reached:
-            for item in graph[node]:
-                frontier.append(f"{path}{item}")
-            reached.add(path)
+        paths = []
+        for vertex in graph[node]:
+            if vertex not in reached:
+                new_path = f"{path}{vertex}"
+                paths.append(new_path)
+                reached[vertex] = new_path
+
+        for idx, path in enumerate(paths):
+            frontier.insert(idx, path)
+
+        print("=====================")
 
     return None
 

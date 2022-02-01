@@ -3,12 +3,12 @@
 
 graph = {
     "A": ["B", "C"],
-    "B": ["D", "F", "A"],
+    "B": ["F", "D", "A"],
     "C": ["D", "E", "A"],
-    "D": ["E", "C"],
+    "D": ["E", "B", "C"],
     "E": ["H", "C", "D"],
     "F": ["G", "H", "B"],
-    "G": ["L", "I", "H", "F"],
+    "G": ["L", "I", "F", "H"],
     "H": ["J", "K", "E", "F", "G"],
     "I": ["L", "J", "G"],
     "J": ["M", "H", "I"],
@@ -19,7 +19,7 @@ graph = {
 
 def breadth_first_search(graph, start: str, goal: str):
     frontier = [start]
-    reached = set(start)
+    reached = { start: start }
     while len(frontier) != 0:
 
         print(f"Frontier {frontier}")
@@ -30,10 +30,10 @@ def breadth_first_search(graph, start: str, goal: str):
             return path
         node = path[-1]
 
-        for item in graph[node]:
-            if item not in reached:
-                frontier.append(f"{path}{item}")
-                reached.add(f"{path}{item}")
+        for vertex in graph[node]:
+            if vertex not in reached:
+                frontier.append(f"{path}{vertex}")
+                reached[vertex] = f"{path}{vertex}"
 
         print("=====================")
 

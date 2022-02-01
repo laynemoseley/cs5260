@@ -19,23 +19,24 @@ graph = {
 def breadth_first_search(graph, start: str, goal: str):
     frontier = PriorityQueue()
     frontier.put((0, start))
-    reached = set(f"{start}-{0}")
+    reached = { start: { 'path': start, 'cost': 0 } }
     while not frontier.empty():
 
         print(f"Frontier {frontier}")
         print(f"Reached {reached}")
 
-        path = frontier.get()
+        thing = frontier.get()
+        path = thing[1]
         if goal in path:
             return path
         node = path[-1]
 
         for item in graph[node]:
-            label = item[0]
+            vertex = item[0]
             cost = item[1]
-            if item not in reached:
-                frontier.put((cost, f"{path}{label}"))
-                reached.add(f"{path}{item[0]}")
+            if vertex not in reached:
+                frontier.put((cost, f"{path}{vertex}"))
+                reached[vertex] = { 'path': f"{path}{vertex}", 'cost': cost }
 
         print("=====================")
 

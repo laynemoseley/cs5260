@@ -16,6 +16,9 @@ def import_countries():
         else:
             country = {}
             for i, header in enumerate(headers):
-                country[header] = row[i]
+                if header != "Country":
+                    country[header] = int(row[i])
+                else:
+                    country[header] = row[i]
             countries.append(country)
     return countries

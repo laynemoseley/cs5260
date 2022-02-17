@@ -1,16 +1,17 @@
 from queue import PriorityQueue
 from copy import deepcopy
 from util import import_countries
+from random import randint
 
-Population = 'r1'
-MetallicElements = 'r2'
-Timber = 'r3'
-MetallicAlloys = 'r21'
-Electronics = 'r22'
-Housing = 'r23'
-WasteOne = "r21'"
-WasteTwo = "r22'"
-HousingWaste = "r23'"
+Population = 'R1'
+MetallicElements = 'R2'
+Timber = 'R3'
+MetallicAlloys = 'R21'
+Electronics = 'R22'
+Housing = 'R23'
+WasteOne = "R21'"
+WasteTwo = "R22'"
+HousingWaste = "R23'"
 
 class World:
     def __init__(self, countries):
@@ -21,18 +22,14 @@ class World:
         return self.countries[0]
 
 class Node:
-    def __init__(self, parent, country, action):
+    def __init__(self, parent, world, action):
         self.parent = parent
-        self.country = country
+        self.world = world
         self.action = action
         self.children = []
 
     def add_child(self, child):
         self.children.append(child)
-
-countries = import_countries()
-world = World(countries)
-print(world.countries)
 
 def housing_template(country):
     if country[Population] < 5:
@@ -48,41 +45,58 @@ def housing_template(country):
         return None
 
     country[Housing] += 1
-    country[HousingWaste] += 1
+    # country[HousingWaste] += 1
     country[Timber] -= 5
     country[MetallicElements] -= 1
     country[MetallicAlloys] -= 3
     return country
 
+def alloy_template(country):
+    return country
+
+def electronics_template(country):
+    return country
+
 def state_quality(node):
-    return -1
+    return randint(0, 100000)
 
 def generate_successors(node):
-    housing = housing_template(node.country)
-    housing_node = Node(node, housing, 'transform')
+    world_one = deepcopy(node.world)
+    housing_template(world_one.country_of_interest())
+    housing_node = Node(node, world_one, 'transform')
 
-def breadth_first_search(graph, start: str, goal: str):
+    world_two = deepcopy(node.world)
+    alloy_template(world_two.country_of_interest())
+    alloy_node = Node(node, world_two, 'transform')
+
+    world_three = deepcopy(node.world)
+    electronics_template(world_three.country_of_interest())
+    electronics_node = Node(node, world_three, 'transform')
+
+    return [housing_node, alloy_node, electronics_node]
+
+def depth_first_search(node, depth):
     frontier = PriorityQueue()
-    frontier.put((0, start))
-    reached = { start: { 'path': start, 'cost': 0 } }
-    while not frontier.empty():
+    frontier.put((0, node))
+    schedule = []
+    actual_depth = 0
+    while not frontier.empty() and actual_depth < depth:
+        print(schedule)
+        goodestNode = frontier.get()
+        schedule.append(goodestNode[1].action)
+        successors = generate_successors(goodestNode[1])
+        for child in successors:
+            if child is None:
+                continue
+            score = state_quality(child)
+            frontier.put((score, child))
 
-        print(f"Frontier {frontier}")
-        print(f"Reached {reached}")
-
-        thing = frontier.get()
-        path = thing[1]
-        if goal in path:
-            return path
-        node = path[-1]
-
-        for item in graph[node]:
-            vertex = item[0]
-            cost = item[1]
-            if vertex not in reached:
-                frontier.put((cost, f"{path}{vertex}"))
-                reached[vertex] = { 'path': f"{path}{vertex}", 'cost': cost }
-
-        print("=====================")
+        actual_depth += 1
 
     return None
+
+countries = import_countries()
+world = World(countries)
+print(world.countries)
+root = Node(None, world, '????')
+depth_first_search(root, 10)

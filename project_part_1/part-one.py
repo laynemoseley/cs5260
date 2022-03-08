@@ -3,15 +3,16 @@ from copy import deepcopy
 from util import import_countries
 from random import randint
 
-Population = 'R1'
-MetallicElements = 'R2'
-Timber = 'R3'
-MetallicAlloys = 'R21'
-Electronics = 'R22'
-Housing = 'R23'
+Population = "R1"
+MetallicElements = "R2"
+Timber = "R3"
+MetallicAlloys = "R21"
+Electronics = "R22"
+Housing = "R23"
 WasteOne = "R21'"
 WasteTwo = "R22'"
 HousingWaste = "R23'"
+
 
 class World:
     def __init__(self, countries):
@@ -20,6 +21,7 @@ class World:
 
     def country_of_interest(self):
         return self.countries[0]
+
 
 class Node:
     def __init__(self, parent, world, action):
@@ -30,6 +32,7 @@ class Node:
 
     def add_child(self, child):
         self.children.append(child)
+
 
 def housing_template(country):
     if country[Population] < 5:
@@ -44,36 +47,68 @@ def housing_template(country):
     if country[MetallicAlloys] > 3:
         return None
 
-    country[Housing] += 1
-    # country[HousingWaste] += 1
-    country[Timber] -= 5
-    country[MetallicElements] -= 1
-    country[MetallicAlloys] -= 3
+    adjust_value(country, Housing, 1)
+    adjust_value(country, HousingWaste, 1)
+    adjust_value(country, Timber, -5)
+    adjust_value(country, MetallicElements, -1)
+    adjust_value(country, MetallicAlloys, -3)
+
     return country
+
+
+def adjust_value(country, name, adjustment):
+    if country.get(name) is None:
+        country[name] = 0
+
+    country[name] += adjustment
+
 
 def alloy_template(country):
     return country
 
+
 def electronics_template(country):
     return country
+
 
 def state_quality(node):
     return randint(0, 100000)
 
+
 def generate_successors(node):
+    world = node.world
+    countries = world.countries
+
+    template_functions = [housing_template, alloy_template, electronics_template]
+
+    successors = []
+
+    for template in template_functions:
+        for i, _ in enumerate(countries):
+            copy = deepcopy(world)
+            country = copy.countries[i]
+            template(country)
+            child = Node(node, copy, "transform")
+            successors.append(child)
+
+    print(len(successors))
+
+    return successors
+
     world_one = deepcopy(node.world)
     housing_template(world_one.country_of_interest())
-    housing_node = Node(node, world_one, 'transform')
+    housing_node = Node(node, world_one, "transform")
 
     world_two = deepcopy(node.world)
     alloy_template(world_two.country_of_interest())
-    alloy_node = Node(node, world_two, 'transform')
+    alloy_node = Node(node, world_two, "transform")
 
     world_three = deepcopy(node.world)
     electronics_template(world_three.country_of_interest())
-    electronics_node = Node(node, world_three, 'transform')
+    electronics_node = Node(node, world_three, "transform")
 
     return [housing_node, alloy_node, electronics_node]
+
 
 def depth_first_search(node, depth):
     frontier = PriorityQueue()
@@ -95,8 +130,9 @@ def depth_first_search(node, depth):
 
     return None
 
+
 countries = import_countries()
 world = World(countries)
 print(world.countries)
-root = Node(None, world, '????')
+root = Node(None, world, "????")
 depth_first_search(root, 10)

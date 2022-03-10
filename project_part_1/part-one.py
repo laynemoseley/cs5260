@@ -2,6 +2,7 @@ from queue import PriorityQueue
 from copy import deepcopy
 from util import import_countries
 from random import randint
+import math
 
 Population = "R1"
 MetallicElements = "R2"
@@ -71,8 +72,72 @@ def electronics_template(country):
     return country
 
 
+# Returns a list of nodes that make up a the given schedule
+# The first element in the list is the first item in the schedule
+# The last item in the list will be the node passed in as a parameter
+# Because it is part of the schedule
+def get_schedule(node):
+    schedule = [node]
+    parent = node.parent
+    while parent.action is not None:
+        schedule.insert(0, parent)
+        parent = parent.parent
+
+    return schedule
+
+
+def get_schedule_count(node):
+    schedule = get_schedule(node)
+    return len(schedule)
+
+
+# Returns the very first successor from which this node comes from
+# The root node is _not_ the first successor, because the root node
+# has no action associated with it
+def get_first_successor(node):
+    schedule = get_schedule(node)
+    return schedule[0]
+
+
 def state_quality(node):
     return randint(0, 100000)
+
+
+# From the requirements, this function implements the following equation:
+# R(c_i, s_j) = Q_end(c_i, s_j) – Q_start(c_i, s_j) to a country c_i of a schedule s_j.
+def undiscounted_reward(node):
+    start = get_first_successor(node)
+    return state_quality(node) - state_quality(start)
+
+
+# From the requirements, this function implements the following equation:
+# DR(c_i, s_j) = gamma^N * (Q_end(c_i, s_j) – Q_start(c_i, s_j)), where 0 <= gamma < 1.
+def discounted_reward(node):
+
+    # This value can be tweaked
+    gamma = 0.5
+    count = get_schedule_count(node)
+    return gamma ** count * undiscounted_reward(node)
+
+
+# from the reading, uses the logistic function:
+# https://en.wikipedia.org/wiki/Logistic_function
+def schedule_probility(node):
+    L = 1
+    k = 1
+    x = discounted_reward(node)
+    x_0 = 0
+
+    return L / 1 + math.e ** (-k * (x - x_0))
+
+
+# from the requirements, this function implements the following:
+# EU(c_i, s_j) = (P(s_j) * DR(c_i, s_j)) + ((1-P(s_j)) * C), where c_i = self
+def expected_utility(node):
+    C = -5
+    P = schedule_probility(node)
+    DR = discounted_reward(node)
+    return P * DR + ((1 - P) * C)
 
 
 def generate_successors(node):
@@ -134,5 +199,5 @@ def depth_first_search(node, depth):
 countries = import_countries()
 world = World(countries)
 print(world.countries)
-root = Node(None, world, "????")
+root = Node(None, world, None)
 depth_first_search(root, 10)

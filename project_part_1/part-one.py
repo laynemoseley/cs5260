@@ -100,7 +100,7 @@ def get_first_successor(node):
 
 
 def state_quality(node):
-    return randint(0, 100000)
+    return randint(0, 10)
 
 
 # From the requirements, this function implements the following equation:
@@ -178,20 +178,18 @@ def generate_successors(node):
 def depth_first_search(node, depth):
     frontier = PriorityQueue()
     frontier.put((0, node))
-    schedule = []
-    actual_depth = 0
-    while not frontier.empty() and actual_depth < depth:
-        print(schedule)
+    current_depth = 0
+    while not frontier.empty() and current_depth < depth:
         goodestNode = frontier.get()
-        schedule.append(goodestNode[1].action)
         successors = generate_successors(goodestNode[1])
         for child in successors:
             if child is None:
                 continue
-            score = state_quality(child)
+            score = expected_utility(child)
+            print(score)
             frontier.put((score, child))
 
-        actual_depth += 1
+        current_depth += 1
 
     return None
 

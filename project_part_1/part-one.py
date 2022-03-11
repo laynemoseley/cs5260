@@ -13,6 +13,8 @@ Housing = "R23"
 WasteOne = "R21'"
 WasteTwo = "R22'"
 HousingWaste = "R23'"
+MetallicAlloysWaste = "R21'"
+ElectronicsWaste = "R22'"
 
 
 class World:
@@ -31,21 +33,19 @@ class Node:
         self.action = action
         self.children = []
 
+    # I added this because the priority queue needed it in case there were two scores that were the same
+    # TODO: Add some logic here?
+    def __lt__(self, other):
+        return True
+
     def add_child(self, child):
         self.children.append(child)
 
 
 def housing_template(country):
-    if country[Population] < 5:
-        return None
 
-    if country[MetallicElements] < 1:
-        return None
-
-    if country[Timber] < 5:
-        return None
-
-    if country[MetallicAlloys] > 3:
+    inputs = {Population: 5, MetallicElements: 1, Timber: 5, MetallicAlloys: 3}
+    if not verify_adequate_resources(country, inputs):
         return None
 
     adjust_value(country, Housing, 1)
@@ -57,19 +57,44 @@ def housing_template(country):
     return country
 
 
+def alloy_template(country):
+    inputs = {Population: 1, MetallicElements: 2}
+    if not verify_adequate_resources(country, inputs):
+        return None
+
+    adjust_value(country, MetallicElements, -2)
+    adjust_value(country, MetallicAlloys, 1)
+    adjust_value(country, MetallicAlloysWaste, 1)
+
+    return country
+
+
+def electronics_template(country):
+    inputs = {Population: 1, MetallicElements: 3, MetallicAlloys: 2}
+    if not verify_adequate_resources(country, inputs):
+        return None
+
+    adjust_value(country, MetallicElements, -3)
+    adjust_value(country, MetallicElements, -2)
+    adjust_value(country, Electronics, 2)
+    adjust_value(country, ElectronicsWaste, 1)
+
+    return country
+
+
+def verify_adequate_resources(country, resources):
+    for key, value in resources.items():
+        if country[key] < value:
+            return False
+
+    return True
+
+
 def adjust_value(country, name, adjustment):
     if country.get(name) is None:
         country[name] = 0
 
     country[name] += adjustment
-
-
-def alloy_template(country):
-    return country
-
-
-def electronics_template(country):
-    return country
 
 
 # Returns a list of nodes that make up a the given schedule
@@ -156,23 +181,9 @@ def generate_successors(node):
             child = Node(node, copy, "transform")
             successors.append(child)
 
-    print(len(successors))
+    print(f"Successors generated: {len(successors)}")
 
     return successors
-
-    world_one = deepcopy(node.world)
-    housing_template(world_one.country_of_interest())
-    housing_node = Node(node, world_one, "transform")
-
-    world_two = deepcopy(node.world)
-    alloy_template(world_two.country_of_interest())
-    alloy_node = Node(node, world_two, "transform")
-
-    world_three = deepcopy(node.world)
-    electronics_template(world_three.country_of_interest())
-    electronics_node = Node(node, world_three, "transform")
-
-    return [housing_node, alloy_node, electronics_node]
 
 
 def depth_first_search(node, depth):
@@ -186,7 +197,6 @@ def depth_first_search(node, depth):
             if child is None:
                 continue
             score = expected_utility(child)
-            print(score)
             frontier.put((score, child))
 
         current_depth += 1

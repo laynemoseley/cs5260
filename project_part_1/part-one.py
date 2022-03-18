@@ -1,9 +1,11 @@
 from queue import PriorityQueue
 from copy import deepcopy
-from util import import_countries
+from uuid import uuid4
+from util import import_countries, import_resource_info
 from random import randint
 import math
 
+# Resources definition constants
 Population = "R1"
 MetallicElements = "R2"
 Timber = "R3"
@@ -16,14 +18,21 @@ HousingWaste = "R23'"
 MetallicAlloysWaste = "R21'"
 ElectronicsWaste = "R22'"
 
+PersonsPerHouse = 4
+
+# Calculation constants
+Gamma = 0.5
+C = -5
+K = 1
+X_0 = 0
+
+resource_info = import_resource_info()
+
 
 class World:
     def __init__(self, countries):
         # list of countries from csv
         self.countries = countries
-
-    def country_of_interest(self):
-        return self.countries[0]
 
 
 class Node:
@@ -32,6 +41,11 @@ class Node:
         self.world = world
         self.action = action
         self.children = []
+        self.uuid = str(uuid4())
+
+    # Represents the country of interest by which we will be judging state quality
+    def my_country(self):
+        return world.countries[0]
 
     # I added this because the priority queue needed it in case there were two scores that were the same
     # TODO: Add some logic here?
@@ -66,6 +80,8 @@ def alloy_template(country):
     adjust_value(country, MetallicAlloys, 1)
     adjust_value(country, MetallicAlloysWaste, 1)
 
+    print(country)
+
     return country
 
 
@@ -75,7 +91,7 @@ def electronics_template(country):
         return None
 
     adjust_value(country, MetallicElements, -3)
-    adjust_value(country, MetallicElements, -2)
+    adjust_value(country, MetallicAlloys, -2)
     adjust_value(country, Electronics, 2)
     adjust_value(country, ElectronicsWaste, 1)
 
@@ -97,10 +113,9 @@ def adjust_value(country, name, adjustment):
     country[name] += adjustment
 
 
-# Returns a list of nodes that make up a the given schedule
+# Returns a list of nodes that make up a given schedule for a decendent node
 # The first element in the list is the first item in the schedule
 # The last item in the list will be the node passed in as a parameter
-# Because it is part of the schedule
 def get_schedule(node):
     schedule = [node]
     parent = node.parent
@@ -111,9 +126,15 @@ def get_schedule(node):
     return schedule
 
 
+# the number of steps in the schedule or the given node
 def get_schedule_count(node):
     schedule = get_schedule(node)
     return len(schedule)
+
+
+# Added for naming clarity when used
+def get_depth(node):
+    return get_schedule_count(node)
 
 
 # Returns the very first successor from which this node comes from
@@ -124,8 +145,59 @@ def get_first_successor(node):
     return schedule[0]
 
 
+#
+# I used the state quality function by Jared Beach as a starting place: https://piazza.com/class/kyz01i5gip25bn?cid=57
+#
 def state_quality(node):
-    return randint(0, 10)
+
+    result = 0
+    country = node.my_country()
+    for (resource, amount) in country.items():
+        info = resource_info.get(resource)
+        if info is None:
+            continue
+        weight = info["weight"]
+
+        if resource == Housing:
+            population = country[Population]
+
+            # If there are no houses, there is no score
+            if amount == 0:
+                continue
+
+            housesPerPerson = population / amount
+            housingReward = population * min(housesPerPerson, 1) * weight
+            if housesPerPerson < 1 / PersonsPerHouse:
+                housingReward *= housesPerPerson * PersonsPerHouse
+            result += housingReward
+        else:
+            result += info["weight"] * amount
+
+    #   for (const r of Object.keys(country)) {
+    #     const resourceName = r as keyof CountryResources;
+    #     const amount = country[resourceName];
+    #     if (resourceName === 'R23_Housing') {
+    #       const housesPerPerson =
+    #         country.R1_Population === 0 ? 0 : amount / country.R1_Population;
+    #       // Reward = number of houses per person
+    #       let housingReward =
+    #         country.R1_Population *
+    #         // Don't reward extra if there's more than 1 house per person (too many houses)
+    #         Math.min(housesPerPerson, 1) *
+    #         resourceDefinitions.R23_Housing.weight;
+    #       // Shrink reward if housesPerPerson is very small
+    #       if (housesPerPerson < 1 / PEOPLE_PER_HOUSE) {
+    #         housingReward *= housesPerPerson * PEOPLE_PER_HOUSE;
+    #       }
+
+    #       result += housingReward;
+    #     } else {
+    #       // Every other resource is just a weighted sum
+    #       result += resourceDefinitions[resourceName].weight * amount;
+    #     }
+    #   }
+
+    return result
 
 
 # From the requirements, this function implements the following equation:
@@ -138,35 +210,29 @@ def undiscounted_reward(node):
 # From the requirements, this function implements the following equation:
 # DR(c_i, s_j) = gamma^N * (Q_end(c_i, s_j) – Q_start(c_i, s_j)), where 0 <= gamma < 1.
 def discounted_reward(node):
-
-    # This value can be tweaked
-    gamma = 0.5
     count = get_schedule_count(node)
-    return gamma ** count * undiscounted_reward(node)
+    return Gamma ** count * undiscounted_reward(node)
 
 
-# from the reading, uses the logistic function:
+# from the requirements, uses the logistic function:
 # https://en.wikipedia.org/wiki/Logistic_function
 def schedule_probility(node):
     L = 1
-    k = 1
     x = discounted_reward(node)
-    x_0 = 0
 
-    return L / 1 + math.e ** (-k * (x - x_0))
+    return L / 1 + math.e ** (-K * (x - X_0))
 
 
 # from the requirements, this function implements the following:
 # EU(c_i, s_j) = (P(s_j) * DR(c_i, s_j)) + ((1-P(s_j)) * C), where c_i = self
 def expected_utility(node):
-    C = -5
     P = schedule_probility(node)
     DR = discounted_reward(node)
     return P * DR + ((1 - P) * C)
 
 
-def generate_successors(node):
-    world = node.world
+def generate_successors(parent):
+    world = parent.world
     countries = world.countries
 
     template_functions = [housing_template, alloy_template, electronics_template]
@@ -178,34 +244,50 @@ def generate_successors(node):
             copy = deepcopy(world)
             country = copy.countries[i]
             template(country)
-            child = Node(node, copy, "transform")
+            child = Node(parent, copy, "transform")
             successors.append(child)
-
-    print(f"Successors generated: {len(successors)}")
 
     return successors
 
 
-def depth_first_search(node, depth):
+def search(root_node, max_depth):
     frontier = PriorityQueue()
-    frontier.put((0, node))
+    frontier.put((0, root_node))
     current_depth = 0
-    while not frontier.empty() and current_depth < depth:
-        goodestNode = frontier.get()
-        successors = generate_successors(goodestNode[1])
+
+    # The current best node. As searching proceeds, if a new node comes up with a better Expected Utility
+    # this variable will be set to that node
+    best = (-100000, root_node)
+
+    # For inspection, keep track of the total number of successors generated over the course of the entire search
+    successor_count = 0
+    while not frontier.empty() and current_depth < max_depth:
+        item = frontier.get()
+        score = item[0]
+        node = item[1]
+
+        # continually update the best if a new better score comes along
+        if score > best[0]:
+            best = item
+            print(f"new best score found {score} depth: {current_depth} successor count: {successor_count}")
+
+        successors = generate_successors(node)
+        successor_count += len(successors)
         for child in successors:
             if child is None:
                 continue
             score = expected_utility(child)
             frontier.put((score, child))
+            node.add_child(child)
 
-        current_depth += 1
+            # update the current depth if needed
+            current_depth = max(current_depth, get_depth(child))
 
+    print(f"finished best score found {score} depth: {current_depth} successor count: {successor_count}")
     return None
 
 
 countries = import_countries()
 world = World(countries)
-print(world.countries)
 root = Node(None, world, None)
-depth_first_search(root, 10)
+search(root, 10)

@@ -53,7 +53,7 @@ class World:
         return World(countries)
 
     def my_country(self):
-        return world.countries[0]
+        return self.countries[0]
 
 
 class Node:
@@ -69,7 +69,7 @@ class Node:
 
     # Represents the country of interest by which we will be judging state quality
     def my_country(self):
-        return world.my_country()
+        return self.world.my_country()
 
     def __lt__(self, other):
         return self.id < other.id
@@ -356,12 +356,15 @@ def search(root_node, max_depth):
     successor_count = 0
     while not frontier.empty():
         item = frontier.get()
-        score = item[0]
+
+        # I had to put in the negative number into the queue because of how the queue works
+        # This gets back the original value
+        score = -item[0]
         node = item[1]
 
         # continually update the best if a new better score comes along
         if score > best[0]:
-            best = item
+            best = (score, node)
             print(f"new best score found {score} depth: {current_depth} successor count: {successor_count}")
 
         successors = generate_successors(node)
@@ -370,7 +373,10 @@ def search(root_node, max_depth):
             if child is None:
                 continue
             score = expected_utility(child)
-            frontier.put((score, child))
+
+            # Python PriorityQueue sorts best as lowest
+            # By inverting the score, the best scores will be popped off first
+            frontier.put((-score, child))
             node.add_child(child)
 
             # update the current depth if needed

@@ -18,6 +18,20 @@ HousingWaste = "R23'"
 MetallicAlloysWaste = "R21'"
 ElectronicsWaste = "R22'"
 
+TradableResources = [MetallicElements, Timber, MetallicAlloys, Electronics]
+
+# To keep things deterministic, trades are always initiated by the following percentage, which is 10% of the available resource
+TradePercentage = 0.1
+
+# In order to keep the simulation deterministic, each time a trade is initiated by the country of interest,
+# a predictable resource will be traded back every time
+TradeMap = {
+    MetallicElements: Timber,
+    Timber: MetallicAlloys,
+    MetallicAlloys: Electronics,
+    Electronics: MetallicElements,
+}
+
 PersonsPerHouse = 4
 
 # Calculation constants
@@ -34,26 +48,70 @@ class World:
         # list of countries from csv
         self.countries = countries
 
+    def clone(self):
+        countries = deepcopy(self.countries)
+        return World(countries)
+
+    def my_country(self):
+        return world.countries[0]
+
 
 class Node:
+    node_count = 0
+
     def __init__(self, parent, world, action):
         self.parent = parent
         self.world = world
         self.action = action
         self.children = []
-        self.uuid = str(uuid4())
+        Node.node_count += 1
+        self.id = Node.node_count
 
     # Represents the country of interest by which we will be judging state quality
     def my_country(self):
-        return world.countries[0]
+        return world.my_country()
 
-    # I added this because the priority queue needed it in case there were two scores that were the same
-    # TODO: Add some logic here?
     def __lt__(self, other):
-        return True
+        return self.id < other.id
 
     def add_child(self, child):
         self.children.append(child)
+
+
+# A trade proposal from a country
+class TradeFrom:
+    def __init__(self, country, resource, amount):
+        self.country = country
+        self.resource = resource
+        self.amount = amount
+
+
+# A trade proposal back from a country
+class TradeTo:
+    def __init__(self, country, resource, amount):
+        self.country = country
+        self.resource = resource
+        self.amount = amount
+
+
+# Represents a trade between two countries, where f == TradeFrom and t == TradeTo
+class Trade:
+    def __init__(self, f, t):
+        self.trade_from = f
+        self.trade_to = t
+
+    # validates that the trade is valid, meaning both countries have the required resources to do the trade
+    def validate(self):
+        f = self.trade_from
+        trade_from = {}
+        trade_from[f.resource] = f.amount
+        if not verify_adequate_resources(f.country, trade_from):
+            return False
+
+        t = self.trade_to
+        trade_to = {}
+        trade_to[t.resource] = t.amount
+        return verify_adequate_resources(t.country, trade_to)
 
 
 def housing_template(country):
@@ -80,8 +138,6 @@ def alloy_template(country):
     adjust_value(country, MetallicAlloys, 1)
     adjust_value(country, MetallicAlloysWaste, 1)
 
-    print(country)
-
     return country
 
 
@@ -98,9 +154,27 @@ def electronics_template(country):
     return country
 
 
+def trade_resources(trade):
+    if not trade.validate():
+        return False
+
+    f = trade.trade_from
+    t = trade.trade_to
+
+    # Remove the resource that they are giving away
+    adjust_value(f.country, f.resource, -f.amount)
+    adjust_value(t.country, t.resource, -t.amount)
+
+    # Add the resource that they are taking
+    adjust_value(f.country, t.resource, t.amount)
+    adjust_value(t.country, f.resource, f.amount)
+
+    return True
+
+
 def verify_adequate_resources(country, resources):
     for key, value in resources.items():
-        if country[key] < value:
+        if country[key] < value or value == 0:
             return False
 
     return True
@@ -149,7 +223,6 @@ def get_first_successor(node):
 # I used the state quality function by Jared Beach as a starting place: https://piazza.com/class/kyz01i5gip25bn?cid=57
 #
 def state_quality(node):
-
     result = 0
     country = node.my_country()
     for (resource, amount) in country.items():
@@ -237,14 +310,34 @@ def generate_successors(parent):
 
     template_functions = [housing_template, alloy_template, electronics_template]
 
+    # attempt and transforms if possible
     successors = []
-
     for template in template_functions:
         for i, _ in enumerate(countries):
-            copy = deepcopy(world)
-            country = copy.countries[i]
+            clone = world.clone()
+            country = clone.countries[i]
             template(country)
-            child = Node(parent, copy, "transform")
+            child = Node(parent, clone, "transform")
+            successors.append(child)
+
+    # attempt trades from my country to other countries in increments of TradePercentage
+    for resource in TradableResources:
+        for i, _ in enumerate(countries):
+            # no trades to self!
+            if i == 0:
+                continue
+
+            clone = world.clone()
+            my_country = clone.my_country()
+            country = clone.countries[i]
+
+            trade_from = TradeFrom(my_country, resource, math.floor(my_country[resource] * TradePercentage))
+            trade_to = TradeTo(country, TradeMap[resource], math.floor(country[resource] * TradePercentage))
+            trade = Trade(trade_from, trade_to)
+            if trade_resources(trade) is False:
+                continue
+
+            child = Node(parent, clone, "trade")
             successors.append(child)
 
     return successors
@@ -261,7 +354,7 @@ def search(root_node, max_depth):
 
     # For inspection, keep track of the total number of successors generated over the course of the entire search
     successor_count = 0
-    while not frontier.empty() and current_depth < max_depth:
+    while not frontier.empty():
         item = frontier.get()
         score = item[0]
         node = item[1]

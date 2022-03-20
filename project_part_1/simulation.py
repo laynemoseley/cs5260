@@ -1,16 +1,8 @@
+import sys
+import math
 from queue import PriorityQueue
 from copy import deepcopy
-import sys
 from util import import_countries, import_resource_info, reset_results, update_results
-from random import randint
-import math
-
-# test = "1"
-# test = "2"
-test = "3"
-
-print("Number of arguments:", len(sys.argv), "arguments.")
-print("Argument List:", str(sys.argv))
 
 test = "1"
 if len(sys.argv) > 1:
@@ -326,8 +318,9 @@ def state_quality(node):
         info = resource_info.get(resource)
         if info is None:
             continue
+
         weight = info["weight"]
-        result += info["weight"] * amount
+        result += weight * amount
 
         # if resource == Housing:
         #     population = country[Population]

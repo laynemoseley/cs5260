@@ -1,11 +1,11 @@
 import csv
-from itertools import count
 import os
+from genericpath import exists
 
 
-def import_countries():
+def import_countries(test):
     dirname = os.path.dirname(__file__)
-    filename = os.path.join(dirname, "example-countries.csv")
+    filename = os.path.join(dirname, f"tests/test-{test}-countries.csv")
     file = open(filename)
     reader = csv.reader(file)
     headers = None
@@ -24,9 +24,9 @@ def import_countries():
     return countries
 
 
-def import_resource_info():
+def import_resource_info(test):
     dirname = os.path.dirname(__file__)
-    filename = os.path.join(dirname, "example-resources.csv")
+    filename = os.path.join(dirname, f"tests/test-{test}-resources.csv")
     file = open(filename)
     reader = csv.reader(file)
     headers = None
@@ -38,3 +38,31 @@ def import_resource_info():
             weights[row[0]] = {"weight": float(row[1]), "notes": row[2]}
 
     return weights
+
+
+# should be called once at the beginning of the test run to clear out the results
+def reset_results(test):
+    dirname = os.path.dirname(__file__)
+    filename = os.path.join(dirname, f"results/test-{test}-results.txt")
+    if os.path.exists(filename):
+        os.remove(filename)
+
+
+# should be called everytime a new best schedule is found to update the results list
+def update_results(test, schedule):
+    dirname = os.path.dirname(__file__)
+    filename = os.path.join(dirname, f"results/test-{test}-results.txt")
+    if exists(filename):
+        file = open(filename)
+    else:
+        file = open(filename, "w+")
+
+    contents = file.read()
+    file.close()
+    contents = f"""{schedule.print()} 
+=====================================
+=====================================
+{contents}"""
+    file = open(filename, "w+")
+    file.write(contents)
+    file.close()

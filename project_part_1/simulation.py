@@ -1,9 +1,22 @@
 from queue import PriorityQueue
 from copy import deepcopy
-from uuid import uuid4
-from util import import_countries, import_resource_info
+import sys
+from util import import_countries, import_resource_info, reset_results, update_results
 from random import randint
 import math
+
+# test = "1"
+# test = "2"
+test = "3"
+
+print("Number of arguments:", len(sys.argv), "arguments.")
+print("Argument List:", str(sys.argv))
+
+test = "1"
+if len(sys.argv) > 1:
+    input = sys.argv[1]
+    if input in ["1", "2", "3"]:
+        test = input
 
 # Resources definition constants
 Population = "R1"
@@ -18,29 +31,46 @@ HousingWaste = "R23'"
 MetallicAlloysWaste = "R21'"
 ElectronicsWaste = "R22'"
 
-TradableResources = [MetallicElements, Timber, MetallicAlloys, Electronics]
+ResourceNames = {
+    Population: "Population",
+    MetallicElements: "Metallic Elements",
+    Timber: "Timber",
+    MetallicAlloys: "Metallic Alloys",
+    Electronics: "Electronics",
+    Housing: "Housing",
+    HousingWaste: "Housing Waste",
+    MetallicAlloysWaste: "Metallic Alloys Waste",
+    ElectronicsWaste: "Electronics Waste",
+}
+
+# Resources that are available for a trade
+TradableResources = [MetallicElements, Timber, Electronics]
 
 # To keep things deterministic, trades are always initiated by the following percentage, which is 10% of the available resource
-TradePercentage = 0.1
+TradePercentage = 0.2
 
 # In order to keep the simulation deterministic, each time a trade is initiated by the country of interest,
 # a predictable resource will be traded back every time
 TradeMap = {
     MetallicElements: Timber,
-    Timber: MetallicAlloys,
-    MetallicAlloys: Electronics,
+    Timber: Electronics,
     Electronics: MetallicElements,
 }
 
 PersonsPerHouse = 4
 
 # Calculation constants
-Gamma = 0.5
-C = -5
+Gamma = 0.95
+C = -10
 K = 1
 X_0 = 0
 
-resource_info = import_resource_info()
+# clear out results for this test run
+reset_results(test)
+
+# import necessary data for the test run
+countries = import_countries(test)
+resource_info = import_resource_info(test)
 
 
 class World:
@@ -78,6 +108,24 @@ class Node:
         self.children.append(child)
 
 
+class Schedule:
+    def __init__(self, node):
+        self.node = node
+
+    def print(self):
+        nodes = get_schedule(self.node)
+
+        if len(nodes) == 0:
+            return ""
+
+        result = "[\n"
+        for n in nodes:
+            result += f"{n.action.strip()}\n"
+        result += "]"
+
+        return result
+
+
 # A trade proposal from a country
 class TradeFrom:
     def __init__(self, country, resource, amount):
@@ -113,6 +161,18 @@ class Trade:
         trade_to[t.resource] = t.amount
         return verify_adequate_resources(t.country, trade_to)
 
+    def print(self):
+        f = self.trade_from
+        from_name = f.country["Country"]
+        t = self.trade_to
+        to_name = t.country["Country"]
+
+        return f"""
+(TRANSFER BETWEEN {from_name} and {to_name} 
+    ({ResourceNames[f.resource]} {f.amount} exchanged for {ResourceNames[t.resource]} {t.amount})
+)
+"""
+
 
 def housing_template(country):
 
@@ -126,7 +186,18 @@ def housing_template(country):
     adjust_value(country, MetallicElements, -1)
     adjust_value(country, MetallicAlloys, -3)
 
-    return country
+    return f"""
+(TRANSFORM {country["Country"]}
+    (INPUTS  (Population {inputs[Population]})
+             (Metallic Elements {inputs[MetallicElements]})
+             (Timber {inputs[Timber]})
+             (Metallic Alloys {inputs[MetallicAlloys]})
+    )
+    (OUTPUTS (Housing {1})
+             (Housing Waste {1})
+    )
+)
+"""
 
 
 def alloy_template(country):
@@ -138,7 +209,16 @@ def alloy_template(country):
     adjust_value(country, MetallicAlloys, 1)
     adjust_value(country, MetallicAlloysWaste, 1)
 
-    return country
+    return f"""
+(TRANSFORM {country["Country"]}
+    (INPUTS  (Population {inputs[Population]})
+             (Metallic Elements {inputs[MetallicElements]})
+    )
+    (OUTPUTS (Metallic Alloys {1})
+             (Metallic Alloys Waste {1})
+    )
+)
+"""
 
 
 def electronics_template(country):
@@ -151,7 +231,17 @@ def electronics_template(country):
     adjust_value(country, Electronics, 2)
     adjust_value(country, ElectronicsWaste, 1)
 
-    return country
+    return f"""
+(TRANSFORM {country["Country"]}
+    (INPUTS  (Population {inputs[Population]})
+             (Metallic Elements {inputs[MetallicElements]})
+             (Metallic Alloys {inputs[MetallicAlloys]})
+    )
+    (OUTPUTS (Electronics {2})
+             (ElectronicsWaste {1})
+    )
+)
+"""
 
 
 def trade_resources(trade):
@@ -191,8 +281,13 @@ def adjust_value(country, name, adjustment):
 # The first element in the list is the first item in the schedule
 # The last item in the list will be the node passed in as a parameter
 def get_schedule(node):
+    # Root node has no parent, therefore no schedule
+    if node.parent is None:
+        return []
+
     schedule = [node]
     parent = node.parent
+
     while parent.action is not None:
         schedule.insert(0, parent)
         parent = parent.parent
@@ -224,27 +319,29 @@ def get_first_successor(node):
 #
 def state_quality(node):
     result = 0
+
+    # State Quality is always counted against the "self" country
     country = node.my_country()
     for (resource, amount) in country.items():
         info = resource_info.get(resource)
         if info is None:
             continue
         weight = info["weight"]
+        result += info["weight"] * amount
 
-        if resource == Housing:
-            population = country[Population]
+        # if resource == Housing:
+        #     population = country[Population]
 
-            # If there are no houses, there is no score
-            if amount == 0:
-                continue
+        #     # If there are no houses, there is no score
+        #     if amount == 0:
+        #         continue
 
-            housesPerPerson = population / amount
-            housingReward = population * min(housesPerPerson, 1) * weight
-            if housesPerPerson < 1 / PersonsPerHouse:
-                housingReward *= housesPerPerson * PersonsPerHouse
-            result += housingReward
-        else:
-            result += info["weight"] * amount
+        #     housesPerPerson = population / amount
+        #     housingReward = population * min(housesPerPerson, 1) * weight
+        #     if housesPerPerson < 1 / PersonsPerHouse:
+        #         housingReward *= housesPerPerson * PersonsPerHouse
+        #     result += housingReward
+        # else:
 
     #   for (const r of Object.keys(country)) {
     #     const resourceName = r as keyof CountryResources;
@@ -284,12 +381,12 @@ def undiscounted_reward(node):
 # DR(c_i, s_j) = gamma^N * (Q_end(c_i, s_j) – Q_start(c_i, s_j)), where 0 <= gamma < 1.
 def discounted_reward(node):
     count = get_schedule_count(node)
-    return Gamma ** count * undiscounted_reward(node)
+    return (Gamma ** count) * undiscounted_reward(node)
 
 
 # from the requirements, uses the logistic function:
 # https://en.wikipedia.org/wiki/Logistic_function
-def schedule_probility(node):
+def schedule_probability(node):
     L = 1
     x = discounted_reward(node)
 
@@ -299,9 +396,9 @@ def schedule_probility(node):
 # from the requirements, this function implements the following:
 # EU(c_i, s_j) = (P(s_j) * DR(c_i, s_j)) + ((1-P(s_j)) * C), where c_i = self
 def expected_utility(node):
-    P = schedule_probility(node)
+    P = schedule_probability(node)
     DR = discounted_reward(node)
-    return P * DR + ((1 - P) * C)
+    return (P * DR) + ((1 - P) * C)
 
 
 def generate_successors(parent):
@@ -316,8 +413,10 @@ def generate_successors(parent):
         for i, _ in enumerate(countries):
             clone = world.clone()
             country = clone.countries[i]
-            template(country)
-            child = Node(parent, clone, "transform")
+            action = template(country)
+            if action is None:
+                continue
+            child = Node(parent, clone, action)
             successors.append(child)
 
     # attempt trades from my country to other countries in increments of TradePercentage
@@ -337,7 +436,7 @@ def generate_successors(parent):
             if trade_resources(trade) is False:
                 continue
 
-            child = Node(parent, clone, "trade")
+            child = Node(parent, clone, trade.print())
             successors.append(child)
 
     return successors
@@ -350,7 +449,7 @@ def search(root_node, max_depth):
 
     # The current best node. As searching proceeds, if a new node comes up with a better Expected Utility
     # this variable will be set to that node
-    best = (-100000, root_node)
+    best = (0, root_node)
 
     # For inspection, keep track of the total number of successors generated over the course of the entire search
     successor_count = 0
@@ -362,10 +461,16 @@ def search(root_node, max_depth):
         score = -item[0]
         node = item[1]
 
+        if get_depth(node) >= max_depth:
+            continue
+
         # continually update the best if a new better score comes along
         if score > best[0]:
             best = (score, node)
             print(f"new best score found {score} depth: {current_depth} successor count: {successor_count}")
+            schedule = Schedule(node)
+            print(schedule.print())
+            update_results(test, schedule)
 
         successors = generate_successors(node)
         successor_count += len(successors)
@@ -382,11 +487,13 @@ def search(root_node, max_depth):
             # update the current depth if needed
             current_depth = max(current_depth, get_depth(child))
 
-    print(f"finished best score found {score} depth: {current_depth} successor count: {successor_count}")
+    print(f"finished best score found {best[0]} depth: {current_depth} successor count: {successor_count}")
+    schedule = Schedule(best[1])
+    print(schedule.print())
     return None
 
 
-countries = import_countries()
+# Create the world and commence the search!
 world = World(countries)
 root = Node(None, world, None)
 search(root, 10)

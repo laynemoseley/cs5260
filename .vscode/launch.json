@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Test 1",
+      "name": "Simulation Test 1",
       "type": "python",
       "request": "launch",
       "program": "project_part_1/simulation.py",
@@ -14,7 +14,7 @@
       "args": ["1"]
     },
     {
-      "name": "Test 2",
+      "name": "Simulation Test 2",
       "type": "python",
       "request": "launch",
       "program": "project_part_1/simulation.py",
@@ -23,7 +23,7 @@
       "args": ["2"]
     },
     {
-      "name": "Test 3",
+      "name": "Simulation Test 3",
       "type": "python",
       "request": "launch",
       "program": "project_part_1/simulation.py",

@@ -14,7 +14,7 @@ For example, if you would like to run test 1:
 
 If an unknown test is supplied, test 1 will be run.
 
-A `launch.json` file is also supplied to easily run the different tests within VSCode.
+A `launch.json` file is also supplied at the root of the project to easily run the different tests within VSCode.
 
 ## Tests
 

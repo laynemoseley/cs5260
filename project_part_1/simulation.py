@@ -308,7 +308,7 @@ def get_first_successor(node):
 
 #
 # I used the state quality function by Jared Beach as a starting place: https://piazza.com/class/kyz01i5gip25bn?cid=57
-#
+# However, I did adjust to my own ideas
 def state_quality(node):
     result = 0
 
@@ -320,45 +320,34 @@ def state_quality(node):
             continue
 
         weight = info["weight"]
-        result += weight * amount
 
-        # if resource == Housing:
-        #     population = country[Population]
+        if resource == Housing:
 
-        #     # If there are no houses, there is no score
-        #     if amount == 0:
-        #         continue
+            # Housing is extremely important, therefore any housing is worth more than all other
+            # resources combined
+            # In order to incentivize, housing becomes increasingly more important
+            # *until* there is enough for the entire population
+            # at which point it loses value significantly
 
-        #     housesPerPerson = population / amount
-        #     housingReward = population * min(housesPerPerson, 1) * weight
-        #     if housesPerPerson < 1 / PersonsPerHouse:
-        #         housingReward *= housesPerPerson * PersonsPerHouse
-        #     result += housingReward
-        # else:
+            # current population
+            population = country[Population]
 
-    #   for (const r of Object.keys(country)) {
-    #     const resourceName = r as keyof CountryResources;
-    #     const amount = country[resourceName];
-    #     if (resourceName === 'R23_Housing') {
-    #       const housesPerPerson =
-    #         country.R1_Population === 0 ? 0 : amount / country.R1_Population;
-    #       // Reward = number of houses per person
-    #       let housingReward =
-    #         country.R1_Population *
-    #         // Don't reward extra if there's more than 1 house per person (too many houses)
-    #         Math.min(housesPerPerson, 1) *
-    #         resourceDefinitions.R23_Housing.weight;
-    #       // Shrink reward if housesPerPerson is very small
-    #       if (housesPerPerson < 1 / PEOPLE_PER_HOUSE) {
-    #         housingReward *= housesPerPerson * PEOPLE_PER_HOUSE;
-    #       }
+            # how much is needed by the population
+            housing_needed_by_population = math.ceil(population / PersonsPerHouse)
 
-    #       result += housingReward;
-    #     } else {
-    #       // Every other resource is just a weighted sum
-    #       result += resourceDefinitions[resourceName].weight * amount;
-    #     }
-    #   }
+            # How many are currently satisfied
+            houses_per_person = 0 if amount == 0 else math.ceil(population / amount)
+
+            # if there is enough housing, multipy massively to incentivize
+            if houses_per_person < housing_needed_by_population:
+                diff = housing_needed_by_population - houses_per_person
+                result += (weight * amount or 1) * (5 * diff)
+            else:
+                # If they have enough, use the same rule as other resources
+                result += weight * amount
+        else:
+            # Otherwise, multiply the amount of the resource by the weight
+            result += weight * amount
 
     return result
 

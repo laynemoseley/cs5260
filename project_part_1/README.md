@@ -14,8 +14,6 @@ For example, if you would like to run test 1:
 
 If an unknown test is supplied, test 1 will be run.
 
-A `launch.json` file is also supplied at the root of the project to easily run the different tests within VSCode.
-
 ## Tests
 
 ### Test 1
@@ -24,7 +22,7 @@ A race to get resources in order to build housing. Each country starts without t
 
 ### Test 2
 
-Like Test 1, but each country has enough resources to build housing immediatly.
+Like Test 1, but each country has enough resources to build housing immediately.
 
 ### Test 3
 

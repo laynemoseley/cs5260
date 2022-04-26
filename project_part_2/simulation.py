@@ -1,14 +1,8 @@
-import sys
 import math
 from queue import PriorityQueue
 from copy import deepcopy
+from time import time
 from util import import_countries, import_resource_info, reset_results, update_results
-
-test = "1"
-if len(sys.argv) > 1:
-    input = sys.argv[1]
-    if input in ["1", "2", "3"]:
-        test = input
 
 # Resources definition constants
 Population = "R1"
@@ -57,12 +51,7 @@ C = -10
 K = 1
 X_0 = 0
 
-# clear out results for this test run
-reset_results(test)
-
-# import necessary data for the test run
-countries = import_countries(test)
-resource_info = import_resource_info(test)
+resource_info = import_resource_info("1")
 
 
 class World:
@@ -424,8 +413,9 @@ def generate_successors(parent):
     return successors
 
 
-def search(root_node, max_depth):
-    frontier = PriorityQueue()
+def best_first_search(root_node, max_depth, timeout, frontier_size, on_new_schedule_found):
+    start_time = time()
+    frontier = PriorityQueue(frontier_size)
     frontier.put((0, root_node))
     current_depth = 0
 
@@ -436,6 +426,12 @@ def search(root_node, max_depth):
     # For inspection, keep track of the total number of successors generated over the course of the entire search
     successor_count = 0
     while not frontier.empty():
+        now = time()
+        seconds_elapsed = now - start_time
+        minutes_elapsed = seconds_elapsed / 60
+        if seconds_elapsed > 1 and minutes_elapsed >= timeout:
+            break
+
         item = frontier.get()
 
         # I had to put in the negative number into the queue because of how the queue works
@@ -452,7 +448,7 @@ def search(root_node, max_depth):
             print(f"new best score found {score} depth: {current_depth} successor count: {successor_count}")
             schedule = Schedule(node)
             print(schedule.print())
-            update_results(test, schedule)
+            on_new_schedule_found(schedule)
 
         successors = generate_successors(node)
         successor_count += len(successors)
@@ -472,10 +468,30 @@ def search(root_node, max_depth):
     print(f"finished best score found {best[0]} depth: {current_depth} successor count: {successor_count}")
     schedule = Schedule(best[1])
     print(schedule.print())
-    return None
+    return schedule
 
 
-# Create the world and commence the search!
-world = World(countries)
-root = Node(None, world, None)
-search(root, 10)
+def run_simulation(test_number, timeout, frontier_size, search_type):
+    """
+    Run a simulation until all nodes are discovered or until the timeout has been reached
+    Arguments:
+        test_number: which input dataset to use
+        timout: time in minutes
+        frontier_size: the size of the frontier for the search being performed
+        search_type: best_first or breadth_first
+    """
+
+    test_name = f"{search_type}-frontiersize-{frontier_size}-dataset-{test_number}"
+
+    # clear out results for this test run
+    reset_results(test_name)
+
+    # import necessary data for the test run
+    countries = import_countries(test_number)
+    global resource_info
+    resource_info = import_resource_info(test_number)
+
+    # Create the world and commence the search!
+    world = World(countries)
+    root = Node(None, world, None)
+    best_first_search(root, 10, timeout, frontier_size, lambda schedule: update_results(test_name, schedule))

@@ -6,13 +6,13 @@
 
 ## How to run
 
-`python simulation.py <test number>`
+`python runner.py <test length in minutes>`
 
-For example, if you would like to run test 1:
+For example, if you would like to run each test for 5 minutes:
 
-`python simulation.py 1`
+`python runner.py 5`
 
-If an unknown test is supplied, test 1 will be run.
+If an unknown test is supplied, test length will be 1 minutes.
 
 ## Tests
 

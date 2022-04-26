@@ -1,0 +1,406 @@
+[
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Carpania 
+    (Metallic Elements 139 exchanged for Timber 20)
+)
+(TRANSFER BETWEEN Atlantis and Erewhon 
+    (Metallic Elements 111 exchanged for Timber 100)
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Brobdingnag 
+    (Metallic Elements 89 exchanged for Timber 58)
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 5)
+             (Metallic Elements 1)
+             (Timber 5)
+             (Metallic Alloys 3)
+    )
+    (OUTPUTS (Housing 1)
+             (Housing Waste 1)
+    )
+)
+] 
+=====================================
+=====================================
+[
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Carpania 
+    (Metallic Elements 139 exchanged for Timber 20)
+)
+(TRANSFER BETWEEN Atlantis and Erewhon 
+    (Metallic Elements 111 exchanged for Timber 100)
+)
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Brobdingnag 
+    (Metallic Elements 88 exchanged for Timber 60)
+)
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Brobdingnag 
+    (Metallic Elements 70 exchanged for Timber 77)
+)
+] 
+=====================================
+=====================================
+[
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Carpania 
+    (Metallic Elements 139 exchanged for Timber 20)
+)
+(TRANSFER BETWEEN Atlantis and Erewhon 
+    (Metallic Elements 111 exchanged for Timber 100)
+)
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Erewhon 
+    (Metallic Elements 88 exchanged for Timber 122)
+)
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 3)
+             (Metallic Alloys 2)
+    )
+    (OUTPUTS (Electronics 2)
+             (ElectronicsWaste 1)
+    )
+)
+] 
+=====================================
+=====================================
+[
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Carpania 
+    (Metallic Elements 139 exchanged for Timber 20)
+)
+(TRANSFER BETWEEN Atlantis and Erewhon 
+    (Metallic Elements 111 exchanged for Timber 100)
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Erewhon 
+    (Metallic Elements 89 exchanged for Timber 122)
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+] 
+=====================================
+=====================================
+[
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Carpania 
+    (Metallic Elements 139 exchanged for Timber 20)
+)
+(TRANSFER BETWEEN Atlantis and Erewhon 
+    (Metallic Elements 111 exchanged for Timber 100)
+)
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 3)
+             (Metallic Alloys 2)
+    )
+    (OUTPUTS (Electronics 2)
+             (ElectronicsWaste 1)
+    )
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Erewhon 
+    (Metallic Elements 88 exchanged for Timber 122)
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+] 
+=====================================
+=====================================
+[
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Carpania 
+    (Metallic Elements 139 exchanged for Timber 20)
+)
+(TRANSFER BETWEEN Atlantis and Erewhon 
+    (Metallic Elements 111 exchanged for Timber 100)
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 5)
+             (Metallic Elements 1)
+             (Timber 5)
+             (Metallic Alloys 3)
+    )
+    (OUTPUTS (Housing 1)
+             (Housing Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Erewhon 
+    (Metallic Elements 89 exchanged for Timber 122)
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+] 
+=====================================
+=====================================
+[
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Carpania 
+    (Metallic Elements 139 exchanged for Timber 20)
+)
+(TRANSFER BETWEEN Atlantis and Erewhon 
+    (Metallic Elements 111 exchanged for Timber 100)
+)
+(TRANSFORM Brobdingnag
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+] 
+=====================================
+=====================================
+[
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Carpania 
+    (Metallic Elements 139 exchanged for Timber 20)
+)
+(TRANSFER BETWEEN Atlantis and Erewhon 
+    (Metallic Elements 111 exchanged for Timber 100)
+)
+] 
+=====================================
+=====================================
+[
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+(TRANSFER BETWEEN Atlantis and Carpania 
+    (Metallic Elements 139 exchanged for Timber 20)
+)
+] 
+=====================================
+=====================================
+[
+(TRANSFORM Atlantis
+    (INPUTS  (Population 1)
+             (Metallic Elements 2)
+    )
+    (OUTPUTS (Metallic Alloys 1)
+             (Metallic Alloys Waste 1)
+    )
+)
+] 
+=====================================
+=====================================

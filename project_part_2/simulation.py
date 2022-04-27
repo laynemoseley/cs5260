@@ -2,7 +2,7 @@ import math
 from queue import PriorityQueue
 from copy import deepcopy
 from time import time
-from util import import_countries, import_resource_info, reset_results, update_results
+from util import import_countries, import_resource_info, reset_results, update_results, finish_results
 
 # Resources definition constants
 Population = "R1"
@@ -52,6 +52,18 @@ K = 1
 X_0 = 0
 
 resource_info = import_resource_info("1")
+
+
+class SearchResult:
+    def __init__(self, best_score, best_node, depth_reached, seconds_elapsed, node_count, frontier_size):
+        self.best_score = best_score
+        self.best_node = best_node
+        self.best_schedule = Schedule(best_node)
+        self.depth_reached = depth_reached
+        self.seconds_elapsed = seconds_elapsed
+        self.node_count = node_count
+        self.frontier_size = frontier_size
+        self.search_type = "best_first"
 
 
 class World:
@@ -432,7 +444,11 @@ def best_first_search(root_node, max_depth, timeout, frontier_size, on_new_sched
         if seconds_elapsed > 1 and minutes_elapsed >= timeout:
             break
 
-        item = frontier.get()
+        try:
+            item = frontier.get()
+        except:
+            print("Tried to get item from queue, but failed. Ignoreing")
+            continue
 
         # I had to put in the negative number into the queue because of how the queue works
         # This gets back the original value
@@ -459,16 +475,24 @@ def best_first_search(root_node, max_depth, timeout, frontier_size, on_new_sched
 
             # Python PriorityQueue sorts best as lowest
             # By inverting the score, the best scores will be popped off first
-            frontier.put((-score, child))
-            node.add_child(child)
+            try:
+                frontier.put((-score, child), False)
+                node.add_child(child)
 
-            # update the current depth if needed
-            current_depth = max(current_depth, get_depth(child))
+                # update the current depth if needed
+                current_depth = max(current_depth, get_depth(child))
+            except:
+                # If the queue is full, ignore the child and move on
+                pass
 
     print(f"finished best score found {best[0]} depth: {current_depth} successor count: {successor_count}")
     schedule = Schedule(best[1])
     print(schedule.print())
-    return schedule
+
+    now = time()
+    seconds_elapsed = now - start_time
+
+    return SearchResult(best[0], best[1], current_depth, seconds_elapsed, successor_count, frontier_size)
 
 
 def run_simulation(test_number, timeout, frontier_size, search_type):
@@ -494,4 +518,6 @@ def run_simulation(test_number, timeout, frontier_size, search_type):
     # Create the world and commence the search!
     world = World(countries)
     root = Node(None, world, None)
-    best_first_search(root, 10, timeout, frontier_size, lambda schedule: update_results(test_name, schedule))
+    result = best_first_search(root, 10, timeout, frontier_size, lambda schedule: update_results(test_name, schedule))
+    result.search_type = search_type
+    finish_results(test_name, result)

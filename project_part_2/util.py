@@ -1,5 +1,6 @@
 import csv
 import os
+import glob
 from genericpath import exists
 
 
@@ -40,18 +41,41 @@ def import_resource_info(test):
     return weights
 
 
-# should be called once at the beginning of the test run to clear out the results
-def reset_results(test):
+def clear_results_folder():
     dirname = os.path.dirname(__file__)
-    filename = os.path.join(dirname, f"results/test-{test}-results.txt")
+    folder = os.path.join(dirname, "results/*")
+    files = glob.glob(folder)
+    for f in files:
+        os.remove(f)
+
+
+# should be called once at the beginning of the test run to clear out the results
+def reset_results(test_name):
+    dirname = os.path.dirname(__file__)
+    filename = os.path.join(dirname, f"results/test-{test_name}-results.txt")
     if os.path.exists(filename):
         os.remove(filename)
 
 
 # should be called everytime a new best schedule is found to update the results list
-def update_results(test, schedule):
+def update_results(test_name, schedule):
+    prepend_results_to_test(test_name, schedule.print())
+
+
+def finish_results(test_name, search_result):
+    contents = f"""Search Finished!
+depth reached: {search_result.depth_reached}
+frontier size: {search_result.frontier_size}
+search type: {search_result.search_type}
+best score: {search_result.depth_reached}
+seconds taken: {search_result.seconds_elapsed}
+successor count: {search_result.node_count}"""
+    prepend_results_to_test(test_name, contents)
+
+
+def prepend_results_to_test(test_name, new_contents):
     dirname = os.path.dirname(__file__)
-    filename = os.path.join(dirname, f"results/test-{test}-results.txt")
+    filename = os.path.join(dirname, f"results/test-{test_name}-results.txt")
     if exists(filename):
         file = open(filename)
     else:
@@ -59,7 +83,7 @@ def update_results(test, schedule):
 
     contents = file.read()
     file.close()
-    contents = f"""{schedule.print()} 
+    contents = f"""{new_contents} 
 =====================================
 =====================================
 {contents}"""

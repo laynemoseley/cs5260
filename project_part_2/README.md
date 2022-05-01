@@ -6,13 +6,11 @@
 
 ## How to run
 
-`python runner.py <test length in minutes>`
+`python runner.py`
 
-For example, if you would like to run each test for 5 minutes:
+## Modify the test parameters
 
-`python runner.py 5`
-
-If an unknown test is supplied, test length will be 1 minutes.
+`runner.py` contains the test parameters at the top of the file after the imports. If other tests should be run, `runner.py` can be modified directly.
 
 ## Tests
 

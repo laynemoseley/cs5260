@@ -55,7 +55,7 @@ resource_info = import_resource_info("1")
 
 
 class SearchResult:
-    def __init__(self, best_score, best_node, depth_reached, seconds_elapsed, node_count, frontier_size):
+    def __init__(self, best_score, best_node, depth_reached, seconds_elapsed, node_count, frontier_size, timeout):
         self.best_score = best_score
         self.best_node = best_node
         self.best_schedule = Schedule(best_node)
@@ -64,6 +64,8 @@ class SearchResult:
         self.node_count = node_count
         self.frontier_size = frontier_size
         self.search_type = "best_first"
+        self.data_set = "0"
+        self.timeout = timeout
 
 
 class World:
@@ -456,14 +458,13 @@ def best_first_search(root_node, max_depth, timeout, frontier_size, on_new_sched
         node = item[1]
 
         if get_depth(node) >= max_depth:
-            continue
+            break
 
         # continually update the best if a new better score comes along
         if score > best[0]:
             best = (score, node)
             print(f"new best score found {score} depth: {current_depth} successor count: {successor_count}")
             schedule = Schedule(node)
-            print(schedule.print())
             on_new_schedule_found(schedule)
 
         successors = generate_successors(node)
@@ -487,12 +488,11 @@ def best_first_search(root_node, max_depth, timeout, frontier_size, on_new_sched
 
     print(f"finished best score found {best[0]} depth: {current_depth} successor count: {successor_count}")
     schedule = Schedule(best[1])
-    print(schedule.print())
 
     now = time()
     seconds_elapsed = now - start_time
 
-    return SearchResult(best[0], best[1], current_depth, seconds_elapsed, successor_count, frontier_size)
+    return SearchResult(best[0], best[1], current_depth, seconds_elapsed, successor_count, frontier_size, timeout)
 
 
 def run_simulation(test_number, timeout, frontier_size, search_type):
@@ -505,7 +505,7 @@ def run_simulation(test_number, timeout, frontier_size, search_type):
         search_type: best_first or breadth_first
     """
 
-    test_name = f"{search_type}-frontiersize-{frontier_size}-dataset-{test_number}"
+    test_name = f"{search_type}-frontiersize-{frontier_size}-dataset-{test_number}-timeout-{timeout}"
 
     # clear out results for this test run
     reset_results(test_name)
@@ -518,6 +518,8 @@ def run_simulation(test_number, timeout, frontier_size, search_type):
     # Create the world and commence the search!
     world = World(countries)
     root = Node(None, world, None)
-    result = best_first_search(root, 10, timeout, frontier_size, lambda schedule: update_results(test_name, schedule))
+    result = best_first_search(root, 100, timeout, frontier_size, lambda schedule: update_results(test_name, schedule))
     result.search_type = search_type
+    result.data_set = test_number
     finish_results(test_name, result)
+    return result
